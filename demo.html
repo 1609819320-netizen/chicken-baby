@@ -1,0 +1,1385 @@
+﻿<!doctype html>
+<html lang="zh-CN" data-title="英语阅读训练" data-qr-link="" data-qr-title="微信扫码立即使用">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>英语阅读训练 Demo</title>
+  <style>
+    :root {
+      --app-max-width: 480px;
+      --bg-page: #f3f3f5;
+      --bg-card: #ffffff;
+      --title-grad-start: #e87aa4;
+      --title-grad-end: #b57edc;
+      --text-main: #2f2f2f;
+      --player-bg: #2c2c2c;
+      --player-primary: #f39c12;
+      --player-track: #5f5f5f;
+      --player-track-fill: #f39c12;
+      --shadow-soft: 0 8px 24px rgba(26, 18, 34, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+    }
+
+    .app {
+      width: 100%;
+      max-width: var(--app-max-width);
+      margin: 0 auto;
+      min-height: 100dvh;
+      background: var(--bg-page);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 14px;
+      background: linear-gradient(120deg, var(--title-grad-start), var(--title-grad-end));
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn {
+      position: absolute;
+      left: 12px;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      font-size: 24px;
+      line-height: 1;
+      padding: 6px;
+      cursor: pointer;
+      opacity: 0.95;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin: 0;
+    }
+
+    .qr-btn {
+      position: absolute;
+      right: 12px;
+      border: 0;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      height: 30px;
+      min-width: 34px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: background 0.16s ease, transform 0.16s ease;
+    }
+
+    .qr-btn:hover {
+      background: rgba(255, 255, 255, 0.32);
+      transform: translateY(-1px);
+    }
+
+    .qr-btn:active {
+      transform: translateY(0);
+    }
+
+    .qr-btn:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.85);
+      outline-offset: 2px;
+    }
+
+    .qr-popover {
+      position: fixed;
+      top: 58px;
+      right: calc((100vw - min(var(--app-max-width), 100%)) / 2 + 12px);
+      width: 208px;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(15, 15, 18, 0.92);
+      color: #fff;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+      z-index: 45;
+    }
+
+    .qr-popover[hidden] {
+      display: none;
+    }
+
+    .qr-title {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #f1f1f1;
+      text-align: center;
+      letter-spacing: 0.2px;
+    }
+
+    .qr-code-box {
+      width: 160px;
+      height: 160px;
+      margin: 0 auto;
+      border-radius: 10px;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .qr-code-box img,
+    .qr-code-box canvas {
+      display: block;
+      width: 160px;
+      height: 160px;
+    }
+
+    .qr-link {
+      display: block;
+      margin-top: 8px;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #c8d8ff;
+      text-decoration: none;
+      word-break: break-all;
+      text-align: center;
+    }
+
+    .qr-link:hover {
+      text-decoration: underline;
+    }
+
+    .content-shell {
+      padding: 14px 14px 104px;
+    }
+
+    .content-card {
+      background: var(--bg-card);
+      border-radius: 14px;
+      box-shadow: var(--shadow-soft);
+      padding: 12px;
+      max-height: calc(100dvh - 170px);
+      overflow: auto;
+    }
+
+    .sentence {
+      display: grid;
+      grid-template-columns: 32px 1fr 36px;
+      gap: 8px;
+      align-items: start;
+      margin: 12px 0;
+    }
+
+    .line-speaker,
+    .line-translate {
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      margin-top: 2px;
+    }
+
+    .line-speaker {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #f0dfc8;
+      color: #bc8f4b;
+      font-size: 14px;
+    }
+
+    .line-translate {
+      width: 30px;
+      height: 24px;
+      border: 1px solid #d7d7d7;
+      border-radius: 4px;
+      color: #8f8f8f;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .line-text {
+      font-size: 16px;
+      line-height: 1.8;
+      word-break: break-word;
+      margin: 0;
+    }
+
+    .word-focus {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      font: inherit;
+      line-height: inherit;
+      color: #1f1f1f;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration-line: underline;
+      text-decoration-color: #e79a47;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 3px;
+    }
+
+    .word-focus:focus-visible {
+      outline: 2px solid #8cb7ff;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    .sentence.is-active .line-text {
+      color: #1f1f1f;
+      font-weight: 700;
+    }
+
+    .line-zh {
+      margin: 6px 0 0;
+      font-size: 14px;
+      line-height: 1.8;
+      color: #666;
+      display: none;
+    }
+
+    .sentence.show-zh .line-zh {
+      display: block;
+    }
+
+    .player-wrap {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(var(--app-max-width), 100%);
+      bottom: 0;
+      z-index: 30;
+      padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, rgba(243, 243, 245, 0.95), rgba(243, 243, 245, 0.35));
+      backdrop-filter: blur(2px);
+    }
+
+    .player {
+      height: 60px;
+      border-radius: 16px;
+      background: var(--player-bg);
+      color: #fff;
+      display: grid;
+      grid-template-columns: 44px 1fr auto auto auto;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      box-shadow: 0 8px 24px rgba(44, 44, 44, 0.35);
+    }
+
+    .play-toggle {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--player-primary);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      padding-left: 1px;
+    }
+
+    .progress {
+      min-width: 0;
+    }
+
+    .track {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--player-track);
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .track-fill {
+      width: 0;
+      height: 100%;
+      background: var(--player-track-fill);
+      border-radius: 999px;
+    }
+
+    .time {
+      margin: 0;
+      font-size: 13px;
+      color: #f2f2f2;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .repeat-btn,
+    .speed-btn,
+    .accent-btn {
+      border: 0;
+      background: #404040;
+      color: #fff;
+      font-size: 13px;
+      height: 34px;
+      min-width: 52px;
+      padding: 0 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .repeat-btn.is-on {
+      background: #f39c12;
+      color: #1f1f1f;
+      font-weight: 700;
+    }
+
+    .accent-btn {
+      min-width: 50px;
+      background: #505050;
+    }
+
+    .word-popover-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: transparent;
+    }
+
+    .word-popover-mask[hidden] {
+      display: none;
+    }
+
+    .word-popover {
+      position: fixed;
+      width: min(340px, calc(100vw - 24px));
+      min-width: 320px;
+      padding: 16px 20px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .word-popover-word {
+      margin: 0 0 10px;
+      font-size: 20px;
+      line-height: 1.25;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .word-popover-phonetic-list {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .word-popover-phonetic-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #d3d3d3;
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .word-popover-phonetic-label {
+      width: 18px;
+      flex: 0 0 18px;
+      color: #c8c8c8;
+      font-weight: 600;
+    }
+
+    .word-popover-phonetic-text {
+      margin: 0;
+      flex: 1;
+      color: #d3d3d3;
+    }
+
+    .phonetic-audio-btn {
+      border: 0;
+      background: transparent;
+      color: #999;
+      font-size: 17px;
+      line-height: 1;
+      padding: 0 1px;
+      cursor: pointer;
+      transform: scale(1);
+      transition: color 0.16s ease, transform 0.16s ease;
+      transform-origin: center;
+    }
+
+    .phonetic-audio-btn:hover {
+      color: #7c3aed;
+      transform: scale(1.18);
+    }
+
+    .phonetic-audio-btn:active {
+      transform: scale(0.9);
+    }
+
+    .phonetic-audio-btn.is-playing {
+      color: #7c3aed;
+      animation: phoneticPulse 0.8s ease-in-out infinite;
+    }
+
+    @keyframes phoneticPulse {
+      0% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.24); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.9; }
+    }
+
+    .word-popover-defs {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #ececec;
+    }
+
+    .word-popover-def-line {
+      margin: 0 0 2px;
+    }
+
+    @media (max-width: 360px) {
+      .word-popover {
+        min-width: 0;
+        width: calc(100vw - 20px);
+        padding: 14px 16px;
+      }
+
+      .qr-popover {
+        right: 10px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .player {
+        grid-template-columns: 42px 1fr auto auto auto;
+        gap: 6px;
+      }
+
+      .repeat-btn,
+      .speed-btn,
+      .accent-btn {
+        min-width: 48px;
+        padding: 0 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="英语阅读训练页面">
+    <header class="topbar">
+      <button class="back-btn" type="button" aria-label="返回">‹</button>
+      <h1 class="title">英语阅读训练</h1>
+      <button id="qrBtn" class="qr-btn" type="button" aria-label="显示二维码">扫码</button>
+    </header>
+
+    <section id="qrPopover" class="qr-popover" aria-label="扫码访问" hidden>
+      <p id="qrTitle" class="qr-title">扫码访问</p>
+      <div id="qrCodeBox" class="qr-code-box"></div>
+      <a id="qrLink" class="qr-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+    </section>
+
+    <section class="content-shell">
+      <div class="content-card" aria-label="文本内容区">
+        <div id="sentenceList"></div>
+      </div>
+    </section>
+
+    <div class="player-wrap" aria-label="底部播放器容器">
+      <section class="player" aria-label="底部播放器">
+        <button id="playToggle" class="play-toggle" type="button" aria-label="播放">▶</button>
+
+        <div class="progress" aria-label="音频进度">
+          <div class="track">
+            <div class="track-fill" id="trackFill"></div>
+          </div>
+          <p class="time" id="timeText">0:00 / 0:00</p>
+        </div>
+
+        <button id="repeatBtn" class="repeat-btn" type="button" aria-label="复读">复读</button>
+        <button id="speedBtn" class="speed-btn" type="button" aria-label="当前倍速">1.0x</button>
+        <button id="accentBtn" class="accent-btn" type="button" aria-label="当前口音">美音</button>
+      </section>
+    </div>
+
+    <audio id="audioUS" preload="metadata" src="./audio-us.mp3"></audio>
+    <audio id="audioUK" preload="metadata" src="./audio-uk.mp3"></audio>
+
+    <div id="wordPopoverMask" class="word-popover-mask" hidden>
+      <section id="wordPopover" class="word-popover" role="dialog" aria-label="单词释义" aria-modal="false">
+        <p id="wordPopoverWord" class="word-popover-word"></p>
+        <div class="word-popover-phonetic-list">
+          <div class="word-popover-phonetic-row">
+            <span class="word-popover-phonetic-label">英</span>
+            <p id="wordPopoverPhoneticUK" class="word-popover-phonetic-text"></p>
+            <button id="wordAudioUKBtn" class="phonetic-audio-btn" type="button" aria-label="播放英式发音">🔊</button>
+          </div>
+          <div class="word-popover-phonetic-row">
+            <span class="word-popover-phonetic-label">美</span>
+            <p id="wordPopoverPhoneticUS" class="word-popover-phonetic-text"></p>
+            <button id="wordAudioUSBtn" class="phonetic-audio-btn" type="button" aria-label="播放美式发音">🔊</button>
+          </div>
+        </div>
+        <div id="wordPopoverDefs" class="word-popover-defs"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    (function () {
+      var sentenceList = document.getElementById("sentenceList");
+      var playToggle = document.getElementById("playToggle");
+      var trackFill = document.getElementById("trackFill");
+      var timeText = document.getElementById("timeText");
+      var repeatBtn = document.getElementById("repeatBtn");
+      var speedBtn = document.getElementById("speedBtn");
+      var accentBtn = document.getElementById("accentBtn");
+      var audioUS = document.getElementById("audioUS");
+      var audioUK = document.getElementById("audioUK");
+      var wordPopoverMask = document.getElementById("wordPopoverMask");
+      var wordPopover = document.getElementById("wordPopover");
+      var wordPopoverWord = document.getElementById("wordPopoverWord");
+      var wordPopoverPhoneticUK = document.getElementById("wordPopoverPhoneticUK");
+      var wordPopoverPhoneticUS = document.getElementById("wordPopoverPhoneticUS");
+      var wordPopoverDefs = document.getElementById("wordPopoverDefs");
+      var wordAudioUKBtn = document.getElementById("wordAudioUKBtn");
+      var wordAudioUSBtn = document.getElementById("wordAudioUSBtn");
+      var qrBtn = document.getElementById("qrBtn");
+      var qrPopover = document.getElementById("qrPopover");
+      var qrTitle = document.getElementById("qrTitle");
+      var qrCodeBox = document.getElementById("qrCodeBox");
+      var qrLink = document.getElementById("qrLink");
+
+      var speeds = [0.75, 1.0, 1.25, 1.5];
+      var speedIndex = 1;
+      var isPlaying = false;
+      var repeatOn = false;
+      var currentMode = "all";
+      var currentSentenceIndex = -1;
+      var sentenceVoice = null;
+      var wordAudioUK = new Audio();
+      var wordAudioUS = new Audio();
+      var sentenceNodes = [];
+      var voiceList = [];
+      var activeWordEntry = null;
+      var qrCodeInstance = null;
+      var qrVisible = false;
+      var qrHoverIn = false;
+      var qrHideTimer = null;
+      var qrValid = false;
+      var qrConfig = {
+        text: (document.documentElement.getAttribute("data-qr-link") || "").trim(),
+        title: document.documentElement.getAttribute("data-qr-title") || "微信扫码立即使用",
+        size: 160
+      };
+
+      var accents = [
+        { key: "us", label: "美音", lang: "en-US", files: ["audio-us.mp3", "audio-us.mp3.mp3"], audio: audioUS },
+        { key: "uk", label: "英音", lang: "en-GB", files: ["audio-uk.mp3", "audio-uk.mp3.mp3"], audio: audioUK }
+      ];
+      var accentIndex = 0;
+      var audioReady = {
+        us: false,
+        uk: false
+      };
+      var audioStatus = {
+        us: "loading",
+        uk: "loading"
+      };
+      var sourceFallbackIndex = {
+        us: 0,
+        uk: 0
+      };
+      var pendingAccentResume = null;
+
+      var sentences = [
+        {
+          en: "I saw in a magazine a week ago that my grandma's favorite television actor has put restaurants in towns all across the country here,",
+          zh: "一周之前，我在杂志上看到（一则消息），我奶奶最喜欢的电视演员已经在这个国家的各个城镇都开设了餐馆，"
+        },
+        {
+          en: "as well as in West Africa, Australia, Canada, England, Germany, Spain, and Thailand;",
+          zh: "另外还在西非、澳大利亚、加拿大、英国、德国、西班牙和泰国（也开了餐馆）；"
+        },
+        {
+          en: "they are famous for serving smoked beef, lamb, turkey and game,",
+          zh: "他们因提供（下列食物）而闻名：熏牛肉、羊肉、火鸡和野味，"
+        },
+        {
+          en: "cups of grape juice with honey and ice, vegetables, peaches and sugar.",
+          zh: "以及掺合了蜂蜜、冰块、蔬菜、鲜桃和糖块的葡萄汁。"
+        }
+      ];
+
+      var focusWordJSON = [
+        { word: "saw", uk: "/sɔː/", us: "/sɔː/", defs: [{ pos: "v.", zh: "看见；看到（see 的过去式）" }] },
+        { word: "magazine", uk: "/ˌmæɡəˈziːn/", us: "/ˈmæɡəziːn/", defs: [{ pos: "n.", zh: "杂志" }] },
+        { word: "ago", uk: "/əˈɡəʊ/", us: "/əˈɡoʊ/", defs: [{ pos: "adv.", zh: "以前" }] },
+        { word: "grandma", audioStem: "grandmas", uk: "/ˈɡrænmɑː/", us: "/ˈɡrænˌmɑː/", defs: [{ pos: "n.", zh: "奶奶；外婆" }] },
+        { word: "television", uk: "/ˈtelɪvɪʒn/", us: "/ˈteləvɪʒn/", defs: [{ pos: "n.", zh: "电视；电视机" }] },
+        { word: "actor", uk: "/ˈæktə(r)/", us: "/ˈæktər/", defs: [{ pos: "n.", zh: "演员" }] },
+        { word: "put", uk: "/pʊt/", us: "/pʊt/", defs: [{ pos: "v.", zh: "放置；设立" }] },
+        { word: "restaurants", uk: "/ˈrestrɒnts/", us: "/ˈrestrɑːnts/", defs: [{ pos: "n.", zh: "餐馆（restaurant 复数）" }] },
+        { word: "towns", uk: "/taʊnz/", us: "/taʊnz/", defs: [{ pos: "n.", zh: "城镇（town 复数）" }] },
+        { word: "across", uk: "/əˈkrɒs/", us: "/əˈkrɔːs/", defs: [{ pos: "prep.", zh: "遍及；横跨" }, { pos: "adv.", zh: "在对面；横过" }] },
+        { word: "country", uk: "/ˈkʌntri/", us: "/ˈkʌntri/", defs: [{ pos: "n.", zh: "国家；乡村" }] },
+        { word: "here", uk: "/hɪə(r)/", us: "/hɪr/", defs: [{ pos: "adv.", zh: "这里；在这儿" }] },
+        { word: "West", audioStem: "West_Africa", uk: "/west/", us: "/west/", defs: [{ pos: "n.", zh: "西方；西部" }, { pos: "adj.", zh: "西方的；西部的" }] },
+        { word: "Africa", audioStem: "West_Africa", uk: "/ˈæfrɪkə/", us: "/ˈæfrɪkə/", defs: [{ pos: "n.", zh: "非洲" }] },
+        { word: "Australia", uk: "/ɒˈstreɪliə/", us: "/ɔːˈstreɪliə/", defs: [{ pos: "n.", zh: "澳大利亚" }] },
+        { word: "Canada", uk: "/ˈkænədə/", us: "/ˈkænədə/", defs: [{ pos: "n.", zh: "加拿大" }] },
+        { word: "England", uk: "/ˈɪŋɡlənd/", us: "/ˈɪŋɡlənd/", defs: [{ pos: "n.", zh: "英格兰" }] },
+        { word: "Germany", uk: "/ˈdʒɜːməni/", us: "/ˈdʒɝːməni/", defs: [{ pos: "n.", zh: "德国" }] },
+        { word: "Spain", uk: "/speɪn/", us: "/speɪn/", defs: [{ pos: "n.", zh: "西班牙" }] },
+        { word: "Thailand", uk: "/ˈtaɪlænd/", us: "/ˈtaɪlænd/", defs: [{ pos: "n.", zh: "泰国" }] },
+        { word: "smoked", uk: "/sməʊkt/", us: "/smoʊkt/", defs: [{ pos: "adj.", zh: "熏制的" }, { pos: "v.", zh: "抽烟；熏制（smoke 过去式/过去分词）" }] },
+        { word: "beef", uk: "/biːf/", us: "/biːf/", defs: [{ pos: "n.", zh: "牛肉" }] },
+        { word: "lamb", uk: "/læm/", us: "/læm/", defs: [{ pos: "n.", zh: "羔羊肉；小羊" }] },
+        { word: "turkey", uk: "/ˈtɜːki/", us: "/ˈtɝːki/", defs: [{ pos: "n.", zh: "火鸡；火鸡肉" }] },
+        { word: "game", uk: "/ɡeɪm/", us: "/ɡeɪm/", defs: [{ pos: "n.", zh: "野味；游戏；比赛" }] },
+        { word: "cups", uk: "/kʌps/", us: "/kʌps/", defs: [{ pos: "n.", zh: "杯（cup 复数）" }] },
+        { word: "grape", uk: "/ɡreɪp/", us: "/ɡreɪp/", defs: [{ pos: "n.", zh: "葡萄" }] },
+        { word: "honey", uk: "/ˈhʌni/", us: "/ˈhʌni/", defs: [{ pos: "n.", zh: "蜂蜜" }] },
+        { word: "ice", uk: "/aɪs/", us: "/aɪs/", defs: [{ pos: "n.", zh: "冰；冰块" }] },
+        { word: "vegetables", uk: "/ˈvedʒtəblz/", us: "/ˈvedʒtəblz/", defs: [{ pos: "n.", zh: "蔬菜（vegetable 复数）" }] },
+        { word: "peaches", uk: "/ˈpiːtʃɪz/", us: "/ˈpiːtʃɪz/", defs: [{ pos: "n.", zh: "桃子（peach 复数）" }] },
+        { word: "sugar", uk: "/ˈʃʊɡə(r)/", us: "/ˈʃʊɡər/", defs: [{ pos: "n.", zh: "糖" }] }
+      ];
+      var focusWordMap = focusWordJSON.reduce(function (acc, entry) {
+        acc[entry.word.toLowerCase()] = entry;
+        return acc;
+      }, {});
+
+      function getActiveAccent() {
+        return accents[accentIndex];
+      }
+
+      function getActiveAudio() {
+        return getActiveAccent().audio;
+      }
+
+      function getAccentByKey(key) {
+        return accents.find(function (accent) {
+          return accent.key === key;
+        });
+      }
+
+      function setAccentAudioSource(accent, fallbackIndex, shouldLoad) {
+        var safeIndex = Math.max(0, Math.min(fallbackIndex, accent.files.length - 1));
+        sourceFallbackIndex[accent.key] = safeIndex;
+        audioStatus[accent.key] = "loading";
+        audioReady[accent.key] = false;
+        accent.audio.src = "./" + accent.files[safeIndex];
+        if (shouldLoad) {
+          accent.audio.load();
+        }
+      }
+
+      function initAudioSources() {
+        accents.forEach(function (accent) {
+          setAccentAudioSource(accent, 0, true);
+        });
+      }
+
+      function escapeHTML(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function findFocusWordEntry(token) {
+        var lower = token.toLowerCase();
+        if (focusWordMap[lower]) {
+          return focusWordMap[lower];
+        }
+        if (lower.endsWith("'s")) {
+          var base = lower.slice(0, -2);
+          if (focusWordMap[base]) {
+            return focusWordMap[base];
+          }
+        }
+        return null;
+      }
+
+      function renderHighlightedText(text) {
+        return text.replace(/[A-Za-z']+/g, function (token) {
+          var entry = findFocusWordEntry(token);
+          if (!entry) {
+            return token;
+          }
+          return (
+            '<button class="word-focus" type="button" data-word="' + escapeHTML(entry.word.toLowerCase()) + '" aria-label="查看' + escapeHTML(token) + '释义">' +
+              escapeHTML(token) +
+            "</button>"
+          );
+        });
+      }
+
+      function renderSentences() {
+        sentenceList.innerHTML = sentences
+          .map(function (line, idx) {
+            return (
+              '<article class="sentence" data-index="' + idx + '">' +
+                '<button class="line-speaker" type="button" aria-label="播放本句">🔊</button>' +
+                '<div>' +
+                  '<p class="line-text">' + renderHighlightedText(line.en) + '</p>' +
+                  '<p class="line-zh" aria-hidden="true">' + line.zh + '</p>' +
+                '</div>' +
+                '<button class="line-translate" type="button" aria-label="展开翻译">译</button>' +
+              '</article>'
+            );
+          })
+          .join("");
+        sentenceNodes = Array.prototype.slice.call(sentenceList.querySelectorAll(".sentence"));
+      }
+
+      function formatTime(seconds) {
+        if (!isFinite(seconds) || seconds < 0) {
+          return "0:00";
+        }
+        var m = Math.floor(seconds / 60);
+        var s = Math.floor(seconds % 60);
+        return m + ":" + String(s).padStart(2, "0");
+      }
+
+      function setPlayingState(playing) {
+        isPlaying = playing;
+        playToggle.textContent = playing ? "❚❚" : "▶";
+        playToggle.setAttribute("aria-label", playing ? "暂停" : "播放");
+      }
+
+      function setActiveSentence(index) {
+        sentenceNodes.forEach(function (node, idx) {
+          node.classList.toggle("is-active", idx === index);
+        });
+      }
+
+      function render() {
+        if (currentMode === "sentence" && currentSentenceIndex > -1) {
+          trackFill.style.width = "0%";
+          timeText.textContent = "句子播放中（" + getActiveAccent().label + "）";
+          return;
+        }
+
+        var accent = getActiveAccent();
+        var audio = accent.audio;
+        var ready = audioReady[accent.key];
+        var status = audioStatus[accent.key];
+        if (!ready) {
+          trackFill.style.width = "0%";
+          if (status === "loading") {
+            timeText.textContent = "音频加载中...";
+          } else {
+            timeText.textContent = "未找到 " + accent.files.join(" / ");
+          }
+          return;
+        }
+        var current = ready ? audio.currentTime : 0;
+        var total = ready ? audio.duration : 0;
+        var pct = total > 0 ? (current / total) * 100 : 0;
+        trackFill.style.width = pct + "%";
+        timeText.textContent = formatTime(current) + " / " + formatTime(total);
+      }
+
+      function cancelSentenceVoice() {
+        if (sentenceVoice) {
+          window.speechSynthesis.cancel();
+          sentenceVoice = null;
+        }
+      }
+
+      function cancelWordVoice() {
+        wordAudioUK.pause();
+        wordAudioUS.pause();
+        wordAudioUK.currentTime = 0;
+        wordAudioUS.currentTime = 0;
+        wordAudioUKBtn.classList.remove("is-playing");
+        wordAudioUSBtn.classList.remove("is-playing");
+      }
+
+      function stopAllAudio() {
+        cancelSentenceVoice();
+        cancelWordVoice();
+        audioUS.pause();
+        audioUK.pause();
+        setActiveSentence(-1);
+        currentSentenceIndex = -1;
+      }
+
+      function closeWordPopover() {
+        cancelWordVoice();
+        activeWordEntry = null;
+        wordPopoverMask.hidden = true;
+      }
+
+      function isValidDeliverUrl(url) {
+        if (!url) {
+          return false;
+        }
+        try {
+          var parsed = new URL(url);
+          return parsed.protocol === "https:";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function renderQRCode() {
+        qrValid = isValidDeliverUrl(qrConfig.text);
+        qrTitle.textContent = qrConfig.title;
+        if (!window.QRCode) {
+          qrCodeBox.textContent = "二维码库加载失败";
+          qrLink.textContent = "";
+          qrLink.removeAttribute("href");
+          qrLink.style.display = "none";
+          qrCodeBox.style.fontSize = "13px";
+          qrCodeBox.style.color = "#444";
+          return;
+        }
+        if (!qrValid) {
+          qrCodeBox.innerHTML = "请先在 html 标签中配置 data-qr-link 为 HTTPS 公网地址";
+          qrCodeBox.style.fontSize = "13px";
+          qrCodeBox.style.color = "#444";
+          qrLink.textContent = "";
+          qrLink.removeAttribute("href");
+          qrLink.style.display = "none";
+          qrCodeInstance = null;
+          return;
+        }
+        qrCodeBox.style.fontSize = "";
+        qrCodeBox.style.color = "";
+        qrLink.href = qrConfig.text;
+        qrLink.textContent = qrConfig.text;
+        qrLink.style.display = "block";
+        if (qrCodeInstance) {
+          return;
+        }
+        qrCodeBox.innerHTML = "";
+        qrCodeInstance = new QRCode(qrCodeBox, {
+          text: qrConfig.text,
+          width: qrConfig.size,
+          height: qrConfig.size,
+          colorDark: "#141414",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+
+      function showQRCodePopover() {
+        if (qrHideTimer) {
+          clearTimeout(qrHideTimer);
+          qrHideTimer = null;
+        }
+        renderQRCode();
+        qrVisible = true;
+        qrPopover.hidden = false;
+        qrBtn.setAttribute("aria-label", "隐藏二维码");
+      }
+
+      function hideQRCodePopover(withDelay) {
+        var delay = withDelay ? 120 : 0;
+        if (qrHideTimer) {
+          clearTimeout(qrHideTimer);
+        }
+        qrHideTimer = window.setTimeout(function () {
+          if (qrHoverIn) {
+            return;
+          }
+          qrVisible = false;
+          qrPopover.hidden = true;
+          qrBtn.setAttribute("aria-label", "显示二维码");
+        }, delay);
+      }
+
+      function toWordAudioStem(entry) {
+        if (entry.audioStem) {
+          return entry.audioStem;
+        }
+        return entry.word
+          .replace(/'/g, "")
+          .replace(/\s+/g, "_");
+      }
+
+      function getWordAudioPath(entry, accentKey) {
+        return "../重点词汇/" + toWordAudioStem(entry) + "_audio-" + accentKey + ".mp3";
+      }
+
+      function setWordAudioPlayingState(accentKey, playing) {
+        var button = accentKey === "uk" ? wordAudioUKBtn : wordAudioUSBtn;
+        button.classList.toggle("is-playing", playing);
+      }
+
+      function bindWordAudioEvents(audio, accentKey) {
+        audio.addEventListener("play", function () {
+          setWordAudioPlayingState(accentKey, true);
+        });
+        audio.addEventListener("ended", function () {
+          setWordAudioPlayingState(accentKey, false);
+        });
+        audio.addEventListener("pause", function () {
+          if (audio.currentTime === 0 || audio.ended) {
+            setWordAudioPlayingState(accentKey, false);
+          }
+        });
+        audio.addEventListener("error", function () {
+          setWordAudioPlayingState(accentKey, false);
+        });
+      }
+
+      function playWordAudio(accentKey) {
+        if (!activeWordEntry) {
+          return;
+        }
+        var audio = accentKey === "uk" ? wordAudioUK : wordAudioUS;
+        audio.pause();
+        audio.currentTime = 0;
+        audio.src = getWordAudioPath(activeWordEntry, accentKey);
+        audio.play().catch(function () {
+          setWordAudioPlayingState(accentKey, false);
+        });
+      }
+
+      function preloadWordAudio(entry) {
+        if (!entry) {
+          return;
+        }
+        wordAudioUK.src = getWordAudioPath(entry, "uk");
+        wordAudioUS.src = getWordAudioPath(entry, "us");
+        wordAudioUK.load();
+        wordAudioUS.load();
+      }
+
+      function positionWordPopoverByTarget(targetEl) {
+        var anchorRect = targetEl.getBoundingClientRect();
+        var popoverRect = wordPopover.getBoundingClientRect();
+        var gap = 8;
+        var viewportWidth = window.innerWidth;
+        var viewportHeight = window.innerHeight;
+
+        var left = anchorRect.left;
+        if (left + popoverRect.width > viewportWidth - 12) {
+          left = viewportWidth - popoverRect.width - 12;
+        }
+        if (left < 12) {
+          left = 12;
+        }
+
+        var top = anchorRect.bottom + gap;
+        if (top + popoverRect.height > viewportHeight - 12) {
+          top = anchorRect.top - popoverRect.height - gap;
+        }
+        if (top < 12) {
+          top = 12;
+        }
+
+        wordPopover.style.left = left + "px";
+        wordPopover.style.top = top + "px";
+      }
+
+      function openWordPopoverByTarget(targetEl) {
+        var wordKey = targetEl.getAttribute("data-word");
+        if (!wordKey || !focusWordMap[wordKey]) {
+          return;
+        }
+        var entry = focusWordMap[wordKey];
+        activeWordEntry = entry;
+
+        wordPopoverWord.textContent = entry.word;
+        wordPopoverPhoneticUK.textContent = entry.uk;
+        wordPopoverPhoneticUS.textContent = entry.us;
+        wordPopoverDefs.innerHTML = entry.defs
+          .map(function (item) {
+            return '<p class="word-popover-def-line">' + escapeHTML(item.pos + " " + item.zh) + "</p>";
+          })
+          .join("");
+
+        preloadWordAudio(entry);
+        wordPopoverMask.hidden = false;
+        wordPopover.style.left = "-9999px";
+        wordPopover.style.top = "-9999px";
+        positionWordPopoverByTarget(targetEl);
+      }
+
+      function chooseSpeechVoiceByAccent(langCode) {
+        var list = voiceList.length ? voiceList : window.speechSynthesis.getVoices();
+        if (!list.length) {
+          return null;
+        }
+        var exact = list.find(function (v) {
+          return v.lang === langCode;
+        });
+        if (exact) {
+          return exact;
+        }
+        var prefix = list.find(function (v) {
+          return v.lang && v.lang.indexOf(langCode.split("-")[0]) === 0;
+        });
+        if (prefix) {
+          return prefix;
+        }
+        return null;
+      }
+
+      function playFullAudio() {
+        currentMode = "all";
+        currentSentenceIndex = -1;
+        cancelSentenceVoice();
+        setActiveSentence(-1);
+
+        var accent = getActiveAccent();
+        var audio = accent.audio;
+        if (!audioReady[accent.key]) {
+          setPlayingState(false);
+          render();
+          return;
+        }
+
+        audio.playbackRate = speeds[speedIndex];
+        audio.play().then(function () {
+          setPlayingState(true);
+        }).catch(function () {
+          setPlayingState(false);
+        });
+      }
+
+      function pause() {
+        if (currentMode === "sentence") {
+          cancelSentenceVoice();
+          setActiveSentence(-1);
+          currentSentenceIndex = -1;
+        }
+        audioUS.pause();
+        audioUK.pause();
+        setPlayingState(false);
+      }
+
+      function playSentence(index) {
+        var text = sentences[index].en;
+        var accent = getActiveAccent();
+        stopAllAudio();
+        currentMode = "sentence";
+        currentSentenceIndex = index;
+        setActiveSentence(index);
+        setPlayingState(true);
+
+        sentenceVoice = new SpeechSynthesisUtterance(text);
+        sentenceVoice.lang = accent.lang;
+        sentenceVoice.rate = speeds[speedIndex];
+
+        var selectedVoice = chooseSpeechVoiceByAccent(accent.lang);
+        if (selectedVoice) {
+          sentenceVoice.voice = selectedVoice;
+        }
+
+        sentenceVoice.onend = function () {
+          setPlayingState(false);
+          setActiveSentence(-1);
+          if (repeatOn && currentMode === "sentence" && currentSentenceIndex === index) {
+            playSentence(index);
+            return;
+          }
+          currentSentenceIndex = -1;
+          render();
+        };
+
+        sentenceVoice.onerror = function () {
+          setPlayingState(false);
+          setActiveSentence(-1);
+          currentSentenceIndex = -1;
+          render();
+        };
+
+        window.speechSynthesis.speak(sentenceVoice);
+        render();
+      }
+
+      function updateSpeed() {
+        var speed = speeds[speedIndex];
+        speedBtn.textContent = speed.toFixed(2).replace(".00", ".0") + "x";
+        speedBtn.setAttribute("aria-label", "当前倍速" + speed + "x");
+        audioUS.playbackRate = speed;
+        audioUK.playbackRate = speed;
+      }
+
+      function updateAccentUI() {
+        var accent = getActiveAccent();
+        accentBtn.textContent = accent.label;
+        accentBtn.setAttribute("aria-label", "当前口音" + accent.label);
+      }
+
+      function bindAudioEvents(audio, key) {
+        audio.addEventListener("timeupdate", function () {
+          if (audio === getActiveAudio()) {
+            render();
+          }
+        });
+
+        audio.addEventListener("ended", function () {
+          if (audio !== getActiveAudio()) {
+            return;
+          }
+          if (repeatOn && currentMode === "all") {
+            audio.currentTime = 0;
+            audio.play();
+            return;
+          }
+          setPlayingState(false);
+          render();
+        });
+
+        audio.addEventListener("loadedmetadata", function () {
+          audioReady[key] = isFinite(audio.duration) && audio.duration > 0;
+          audioStatus[key] = audioReady[key] ? "ready" : "missing";
+          if (pendingAccentResume && pendingAccentResume.key === key && audioReady[key]) {
+            var ratio = pendingAccentResume.prevDuration > 0 ? pendingAccentResume.prevTime / pendingAccentResume.prevDuration : 0;
+            var resumeTime = ratio > 0 ? ratio * audio.duration : pendingAccentResume.prevTime;
+            audio.currentTime = Math.max(0, Math.min(resumeTime, Math.max(0, audio.duration - 0.05)));
+            audio.playbackRate = speeds[speedIndex];
+            audio.play().then(function () {
+              setPlayingState(true);
+              render();
+            }).catch(function () {
+              setPlayingState(false);
+              render();
+            });
+            pendingAccentResume = null;
+            return;
+          }
+          if (audio === getActiveAudio()) {
+            render();
+          }
+        });
+
+        audio.addEventListener("error", function () {
+          var accent = getAccentByKey(key);
+          if (accent && sourceFallbackIndex[key] < accent.files.length - 1) {
+            setAccentAudioSource(accent, sourceFallbackIndex[key] + 1, true);
+            return;
+          }
+          audioReady[key] = false;
+          audioStatus[key] = "missing";
+          if (pendingAccentResume && pendingAccentResume.key === key) {
+            pendingAccentResume = null;
+          }
+          if (audio === getActiveAudio()) {
+            render();
+          }
+        });
+      }
+
+      function initEvents() {
+        sentenceList.addEventListener("click", function (event) {
+          var target = event.target;
+
+          if (target.classList.contains("word-focus")) {
+            openWordPopoverByTarget(target);
+            return;
+          }
+
+          var sentenceNode = target.closest(".sentence");
+          if (!sentenceNode) {
+            return;
+          }
+          var idx = Number(sentenceNode.getAttribute("data-index"));
+
+          if (target.classList.contains("line-translate")) {
+            sentenceNode.classList.toggle("show-zh");
+            target.setAttribute("aria-label", sentenceNode.classList.contains("show-zh") ? "收起翻译" : "展开翻译");
+            return;
+          }
+
+          if (target.classList.contains("line-speaker")) {
+            playSentence(idx);
+          }
+        });
+
+        sentenceList.addEventListener("mouseover", function (event) {
+          var target = event.target;
+          if (!target.classList || !target.classList.contains("word-focus")) {
+            return;
+          }
+          var wordKey = target.getAttribute("data-word");
+          if (!wordKey || !focusWordMap[wordKey]) {
+            return;
+          }
+          preloadWordAudio(focusWordMap[wordKey]);
+        });
+
+        wordPopover.addEventListener("click", function (event) {
+          event.stopPropagation();
+        });
+
+        wordPopoverMask.addEventListener("click", function (event) {
+          if (event.target === wordPopoverMask) {
+            closeWordPopover();
+          }
+        });
+
+        wordAudioUKBtn.addEventListener("click", function () {
+          playWordAudio("uk");
+        });
+
+        wordAudioUSBtn.addEventListener("click", function () {
+          playWordAudio("us");
+        });
+
+        qrBtn.addEventListener("mouseenter", function () {
+          showQRCodePopover();
+        });
+
+        qrBtn.addEventListener("mouseleave", function () {
+          hideQRCodePopover(true);
+        });
+
+        qrPopover.addEventListener("mouseenter", function () {
+          qrHoverIn = true;
+          if (qrHideTimer) {
+            clearTimeout(qrHideTimer);
+            qrHideTimer = null;
+          }
+        });
+
+        qrPopover.addEventListener("mouseleave", function () {
+          qrHoverIn = false;
+          hideQRCodePopover(true);
+        });
+
+        qrBtn.addEventListener("click", function () {
+          if (qrVisible) {
+            qrHoverIn = false;
+            hideQRCodePopover(false);
+            return;
+          }
+          showQRCodePopover();
+        });
+
+        document.addEventListener("click", function (event) {
+          if (qrPopover.hidden) {
+            return;
+          }
+          var clickInPopover = qrPopover.contains(event.target);
+          var clickOnButton = event.target === qrBtn;
+          if (!clickInPopover && !clickOnButton) {
+            qrHoverIn = false;
+            hideQRCodePopover(false);
+          }
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && !wordPopoverMask.hidden) {
+            closeWordPopover();
+            return;
+          }
+          if (event.key === "Escape" && !qrPopover.hidden) {
+            qrHoverIn = false;
+            hideQRCodePopover(false);
+          }
+        });
+
+        playToggle.addEventListener("click", function () {
+          if (isPlaying) {
+            pause();
+            return;
+          }
+
+          if (currentMode === "sentence" && currentSentenceIndex > -1) {
+            playSentence(currentSentenceIndex);
+            return;
+          }
+
+          playFullAudio();
+        });
+
+        repeatBtn.addEventListener("click", function () {
+          repeatOn = !repeatOn;
+          repeatBtn.classList.toggle("is-on", repeatOn);
+        });
+
+        speedBtn.addEventListener("click", function () {
+          speedIndex = (speedIndex + 1) % speeds.length;
+          updateSpeed();
+        });
+
+        accentBtn.addEventListener("click", function () {
+          var previousAccent = getActiveAccent();
+          var previousAudio = previousAccent.audio;
+          var wasPlayingAll = isPlaying && currentMode === "all";
+          var previousTime = previousAudio.currentTime || 0;
+          var previousDuration = isFinite(previousAudio.duration) && previousAudio.duration > 0 ? previousAudio.duration : 0;
+
+          accentIndex = (accentIndex + 1) % accents.length;
+          stopAllAudio();
+          setPlayingState(false);
+          currentMode = "all";
+          updateAccentUI();
+
+          var nextAccent = getActiveAccent();
+          if (wasPlayingAll) {
+            if (audioReady[nextAccent.key]) {
+              var nextAudio = nextAccent.audio;
+              var ratioNow = previousDuration > 0 ? previousTime / previousDuration : 0;
+              var nextTime = ratioNow > 0 && isFinite(nextAudio.duration) && nextAudio.duration > 0 ? ratioNow * nextAudio.duration : previousTime;
+              nextAudio.currentTime = Math.max(0, Math.min(nextTime, Math.max(0, nextAudio.duration - 0.05)));
+              nextAudio.playbackRate = speeds[speedIndex];
+              nextAudio.play().then(function () {
+                setPlayingState(true);
+                render();
+              }).catch(function () {
+                setPlayingState(false);
+                render();
+              });
+            } else {
+              pendingAccentResume = {
+                key: nextAccent.key,
+                prevTime: previousTime,
+                prevDuration: previousDuration
+              };
+            }
+          }
+          render();
+        });
+
+        bindAudioEvents(audioUS, "us");
+        bindAudioEvents(audioUK, "uk");
+        bindWordAudioEvents(wordAudioUK, "uk");
+        bindWordAudioEvents(wordAudioUS, "us");
+
+        window.speechSynthesis.addEventListener("voiceschanged", function () {
+          voiceList = window.speechSynthesis.getVoices();
+        });
+      }
+
+      renderSentences();
+      voiceList = window.speechSynthesis.getVoices();
+      initAudioSources();
+      updateSpeed();
+      updateAccentUI();
+      initEvents();
+      render();
+    })();
+  </script>
+</body>
+</html>
