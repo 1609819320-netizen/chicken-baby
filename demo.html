@@ -923,8 +923,40 @@
           .replace(/\s+/g, "_");
       }
 
-      function getWordAudioPath(entry, accentKey) {
-        return "../重点词汇/" + toWordAudioStem(entry) + "_audio-" + accentKey + ".mp3";
+      function getWordAudioCandidates(entry, accentKey) {
+        var stem = toWordAudioStem(entry);
+        var file = stem + "_audio-" + accentKey + ".mp3";
+        return [
+          "../重点词汇/" + file,
+          "../word_audio/" + file,
+          "../../重点词汇/" + file,
+          "../../word_audio/" + file
+        ];
+      }
+
+      function resolvePlayableWordAudioPath(entry, accentKey, callback) {
+        var candidates = getWordAudioCandidates(entry, accentKey);
+        var probe = new Audio();
+        var idx = 0;
+
+        function tryNext() {
+          if (idx >= candidates.length) {
+            callback(candidates[0]);
+            return;
+          }
+          var src = candidates[idx];
+          idx += 1;
+          probe.src = src;
+          probe.oncanplaythrough = function () {
+            callback(src);
+          };
+          probe.onerror = function () {
+            tryNext();
+          };
+          probe.load();
+        }
+
+        tryNext();
       }
 
       function setWordAudioPlayingState(accentKey, playing) {
@@ -956,9 +988,11 @@
         var audio = accentKey === "uk" ? wordAudioUK : wordAudioUS;
         audio.pause();
         audio.currentTime = 0;
-        audio.src = getWordAudioPath(activeWordEntry, accentKey);
-        audio.play().catch(function () {
-          setWordAudioPlayingState(accentKey, false);
+        resolvePlayableWordAudioPath(activeWordEntry, accentKey, function (src) {
+          audio.src = src;
+          audio.play().catch(function () {
+            setWordAudioPlayingState(accentKey, false);
+          });
         });
       }
 
@@ -966,10 +1000,14 @@
         if (!entry) {
           return;
         }
-        wordAudioUK.src = getWordAudioPath(entry, "uk");
-        wordAudioUS.src = getWordAudioPath(entry, "us");
-        wordAudioUK.load();
-        wordAudioUS.load();
+        resolvePlayableWordAudioPath(entry, "uk", function (src) {
+          wordAudioUK.src = src;
+          wordAudioUK.load();
+        });
+        resolvePlayableWordAudioPath(entry, "us", function (src) {
+          wordAudioUS.src = src;
+          wordAudioUS.load();
+        });
       }
 
       function positionWordPopoverByTarget(targetEl) {
